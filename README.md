@@ -1,69 +1,55 @@
-<div align="center">
+# hx711_spi
 
-  <h1><code>wasm-pack-template</code></h1>
+![License](https://img.shields.io/crates/l/hx711_spi?style=plastic)
 
-  <strong>A template for kick starting a Rust and WebAssembly project using <a href="https://github.com/rustwasm/wasm-pack">wasm-pack</a>.</strong>
+This is a platform agnostic driver to interface with Honeywells APB line of pressure sensors (https://sps.honeywell.com/gb/en/products/advanced-sensing-technologies/healthcare-sensing/board-mount-pressure-sensors/basic-abp-series)
+This `[no_std]` driver is built using [`embedded-hal`][2] traits.
 
-  <p>
-    <a href="https://travis-ci.org/rustwasm/wasm-pack-template"><img src="https://img.shields.io/travis/rustwasm/wasm-pack-template.svg?style=flat-square" alt="Build Status" /></a>
-  </p>
+## Usage
+It is recommended to always use [cargo-crev](https://github.com/crev-dev/cargo-crev)
+to verify the trustworthiness of each of your dependencies, including this one.
 
-  <h3>
-    <a href="https://rustwasm.github.io/docs/wasm-pack/tutorials/npm-browser-packages/index.html">Tutorial</a>
-    <span> | </span>
-    <a href="https://discordapp.com/channels/442252698964721669/443151097398296587">Chat</a>
-  </h3>
+Use an embedded-hal implementation to get I2C.
 
-  <sub>Built with 🦀🕸 by <a href="https://rustwasm.github.io/">The Rust and WebAssembly Working Group</a></sub>
-</div>
 
-## About
+## Example
 
-[**📚 Read this template tutorial! 📚**][template-docs]
+### Wiring
 
-This template is designed for compiling Rust libraries into WebAssembly and
-publishing the resulting package to NPM.
+### Code
 
-Be sure to check out [other `wasm-pack` tutorials online][tutorials] for other
-templates and usages of `wasm-pack`.
+## What works
+(tested on Raspberry Pi)
 
-[tutorials]: https://rustwasm.github.io/docs/wasm-pack/tutorials/index.html
-[template-docs]: https://rustwasm.github.io/docs/wasm-pack/tutorials/npm-browser-packages/index.html
+  -
 
-## 🚴 Usage
+## TODO
 
-### 🐑 Use `cargo generate` to Clone this Template
+  - [ ] Test on more platforms
+  -
 
-[Learn more about `cargo generate` here.](https://github.com/ashleygwilliams/cargo-generate)
 
-```
-cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name my-project
-cd my-project
-```
+## Feedback
+All kind of feedback is welcome. If you have questions or problems, please post them on the issue tracker
+This is literally the first code I ever wrote in rust. I am still learning. So please be patient, it might take me some time to fix a bug. I may have to break my knowledge sound-barrier.
+If you have tested on another platform I'd like to hear about that, too!
 
-### 🛠️ Build with `wasm-pack build`
+# References
 
-```
-wasm-pack build
-```
+  - [datasheet][1]
 
-### 🔬 Test in Headless Browsers with `wasm-pack test`
+[1]: https://prod-edam.honeywell.com/content/dam/honeywell-edam/sps/siot/en-gb/products/sensors/pressure-sensors/board-mount-pressure-sensors/basic-abp-series/documents/sps-siot-basic-board-mount-pressure-abp-series-datasheet-32305128-ciid-155789.pdf
 
-```
-wasm-pack test --headless --firefox
-```
+  - [embedded-hal][2]
 
-### 🎁 Publish to NPM with `wasm-pack publish`
+[2]: https://github.com/rust-embedded/embedded-hal
 
-```
-wasm-pack publish
-```
+## License
 
-## 🔋 Batteries Included
+Licensed under either of
 
-* [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) for communicating
-  between WebAssembly and JavaScript.
-* [`console_error_panic_hook`](https://github.com/rustwasm/console_error_panic_hook)
-  for logging panic messages to the developer console.
-* [`wee_alloc`](https://github.com/rustwasm/wee_alloc), an allocator optimized
-  for small code size.
+  - Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
+  http://www.apache.org/licenses/LICENSE-2.0)
+  - MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+
+at your option.
