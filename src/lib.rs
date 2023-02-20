@@ -32,11 +32,9 @@
 //!
 
 #![no_std]
-#![feature(negative_impls)]
 
 use embedded_hal as hal;
 use hal::blocking::{i2c, delay::DelayMs};
-use core::marker::Sync;
 use core::str::FromStr;
 use substring::Substring;
 use nb::{self, block};
@@ -50,8 +48,8 @@ quick_error!
     #[derive(Debug, Copy, Clone)]
     pub enum AbpError
     {
-        CommandMode {display("Unable to read datat. Sensor is in command mode.")}
-        DiagnosticState {display("Error: Sensor is in diagnostic state")}
+        ErrorCommandMode {display("Unable to read datat. Sensor is in command mode.")}
+        ErrorDiagnosticState {display("Error: Sensor is in diagnostic state")}
     }
 }
 
@@ -123,7 +121,7 @@ where
     I2C: i2c::Read<Error = E>,
     D: DelayMs<u16>
 {
-    /// opens a connection to a ABP on a specified SPI.
+    /// opens a connection to a ABP on a specified I2C.
     ///
     pub fn new(i2c: I2C, delay: D, part_nr: & 'static str) -> Self
     {
@@ -148,7 +146,7 @@ where
         {
             "M" => 100.0,       //mbar
             "B" => 100000.0,    //bar
-            "K" => 1000.0,      //kPalet mut txrx: [u8; 4] = [0];
+            "K" => 1000.0,      //kPa 
             "P" => 6894.757293, //psi
              _  => panic!("Unkonwn part: unkonwn pressure unit")
         };
@@ -156,8 +154,8 @@ where
         let p_min = match part_nr.substring(12, 12)
         {
             "D" => -p_max,      // differential type
-            "G" => 0.0,         // gage type
-             _  => panic!("Unkown part: Type must be differential of gage.")
+            "G" => 0.0,         // gauge type
+             _  => panic!("Unkown part: Type must be differential or gauge.")
         };
 
         let i2c_address = match part_nr.substring(13, 13)
@@ -203,7 +201,7 @@ where
     /// reads a pressure value from the ADP and retrurns it
     /// # Examples
     /// ```rust
-    /// let v = block!(hx711.read())?;
+    /// let v = block!(pressure.read())?;
     /// ```
     /// # Errors
     /// Returns i2c errors and nb::Error::WouldBlock if data isn't ready to be read from ADP
@@ -217,9 +215,9 @@ where
         match status
         {
             Valid => Ok(self.convert_pressure(pressure.into())),
-            Command => Self::Error,         // should be more specific
+            Command => Self::ErrorCommandMode,
             Stale => nb::Error::WouldBlock,
-            Diagnostic => Self::Error       // should be more specific
+            Diagnostic => Self::ErrorDiagnosticState,    
         }
     }
 
@@ -279,13 +277,3 @@ fn decode_pressure_and_temperature(buffer: &[u8;4]) -> Output
 
     Output{status, pressure, temperature}
 }
-
-// it's not safe to use I2C bus from different treads and therefore this driver is not
-// tread-safe either.
-// This should not be necessary since the actual implementations for I2C should not implement Sync
-// but I don't want Sync to be auto implemented
-impl <I2C, E, T> !Sync for Abp<I2C, T>
-where
-    I2C: i2c::Read<Error = E>,
-    T: DelayMs<u16>
-{}

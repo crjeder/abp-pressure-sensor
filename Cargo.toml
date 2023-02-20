@@ -1,19 +1,19 @@
 [package]
 name = "abp-preasure-sensor"
-authors = ["crjeder <crjeder@gmail.com>"]
-edition = "2018"
 description = "A platform agnostic driver to interface with the Honeywell ABP pressure sensor series"
 categories = ["embedded", "hardware-support"]
+authors = ["crjeder <crjeder@gmail.com>"]
 keywords = ["embedded-hal-driver", "embedded-hal", "driver"]
-#repository = "https://github.com/crjeder/hx711_spi"
+repository = "https://github.com/crjeder/abp-pressure-sensor"
 readme = "README.md"
 #documentation = "https://docs.rs/hx711_spi"
 license = "MIT OR Apache-2.0"
+edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-embedded-hal = "0.2.5"
+embedded-hal = "0.2.7"
 bitmatch = "0.1.1"
-nb = "1.0.0"
+nb = "1.0"
 substring = "1.4.5"
-quick-error = "2.0.1"
+quick-error = "2.0"
