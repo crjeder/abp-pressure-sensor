@@ -1,5 +1,8 @@
 # abp-pressure-sensor
 
+WIP
+currently it does not compile!
+
 [![Crate](https://img.shields.io/crates/v/abp-pressure-sensor?style=plastic)](https://crates.io/crates/abp-pressure-sensor)
 ![License](https://img.shields.io/crates/l/abp-pressure-sensor?style=plastic)
 ![GitHub branch checks state](https://img.shields.io/github/checks-status/crjeder/abp-pressure-sensor/release?style=plastic)
