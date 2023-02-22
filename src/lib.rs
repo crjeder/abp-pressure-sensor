@@ -28,7 +28,10 @@
 //! - [`embedded-hal`][2]
 //!
 //! [2]: https://github.com/rust-embedded/embedded-hal
+//! 
+//! - [I2C Communication][3]
 //!
+//! [3]: https://sps-support.honeywell.com/s/article/AST-ABP-I2C-Protocol-Guidelines
 //!
 
 #![no_std]
@@ -36,21 +39,21 @@
 use embedded_hal as hal;
 use hal::blocking::{i2c, delay::DelayMs};
 use core::str::FromStr;
+// use core::error::Error;
 use substring::Substring;
-use nb::{self, block};
-#[macro_use] extern crate quick_error;
+use nb::{Error::{Other, WouldBlock}};
 
 // use bitmach to decode the result
 use bitmatch::bitmatch;
 
-quick_error!
+type I2cError = embedded_hal::blocking::i2c::Read::Error;
+
+#[derive(Copy, Clone, Debug)]
+pub enum ApbError<E>
 {
-    #[derive(Debug, Copy, Clone)]
-    pub enum AbpError
-    {
-        ErrorCommandMode {display("Unable to read datat. Sensor is in command mode.")}
-        ErrorDiagnosticState {display("Error: Sensor is in diagnostic state")}
-    }
+    Other(E),
+    ErrorCommandMode,
+    ErrorDiagnosticState,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -98,9 +101,9 @@ struct Output
 /// Represents an instance of a Abp device
 #[derive(Debug)]
 pub struct Abp<I2C, D>
-//where
-//    SPI: spi::Transfer<u8, Error=E> + spi::Write<u8, Error=E>,
-//    T: DelayUs<u16> + DelayMs<u16>
+where
+    I2C: i2c::Read,
+    D: DelayMs<u16>,
 {
     // SPI specific
     i2c: I2C,
@@ -116,11 +119,12 @@ pub struct Abp<I2C, D>
     has_sleep: bool
 }
 
-impl <I2C, E, D> Abp<I2C, D>
+impl <I2C, D, E> Abp<I2C, D>
 where
-    I2C: i2c::Read<Error = E>,
-    D: DelayMs<u16>
+    I2C: i2c::Read,
+    D: DelayMs<u16>,
 {
+    // type _embedded_hal_blocking_i2c_error = i2c::Read::Error;
     /// opens a connection to a ABP on a specified I2C.
     ///
     pub fn new(i2c: I2C, delay: D, part_nr: & 'static str) -> Self
@@ -205,7 +209,7 @@ where
     /// ```
     /// # Errors
     /// Returns i2c errors and nb::Error::WouldBlock if data isn't ready to be read from ADP
-    pub fn pressure(&mut self) -> Result<f32, E>
+    pub fn read(&mut self) -> nb::Result<f32, nb::Error<ApbError<I2cError>>>
     {
         let mut buffer: [u8; 2] = [0; 2];
         self.i2c.read(self.i2c_address, &mut buffer)?;
@@ -215,9 +219,9 @@ where
         match status
         {
             Valid => Ok(self.convert_pressure(pressure.into())),
-            Command => Self::ErrorCommandMode,
-            Stale => nb::Error::WouldBlock,
-            Diagnostic => Self::ErrorDiagnosticState,    
+            Command => Err(Other(ApbError::ErrorCommandMode)),
+            Stale => Err(nb::Error::WouldBlock),
+            Diagnostic => Err(Other(ApbError::ErrorDiagnosticState)),    
         }
     }
 
@@ -273,7 +277,6 @@ fn decode_pressure_and_temperature(buffer: &[u8;4]) -> Output
     let temperature: u16 = bitpack!("00000ttttttttvvv");
 
     let status: Status = s.into();
-    //let status: Status = num::FromPrimitive::from_u8(s).unwrap();
 
     Output{status, pressure, temperature}
 }
