@@ -9,11 +9,8 @@ readme = "README.md"
 #documentation = "https://docs.rs/hx711_spi"
 license = "MIT OR Apache-2.0"
 edition = "2021"
-version = "0.1.0"
+version = "0.2.0"
 
 [dependencies]
-embedded-hal = "0.2.7"
+embedded-hal = "1.0.0"
 bitmatch = "0.1.1"
-nb = "1.0"
-substring = "1.4.5"
-quick-error = "2.0"
