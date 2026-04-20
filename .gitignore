@@ -1,3 +1,16 @@
-Cargo.lock
+# Rust / Cargo
 target/
-.git/
+Cargo.lock
+
+# Claude Code
+.claude/settings.local.json
+.claude/todos/
+
+# OpenSpec (keep specs and changes, ignore local tooling cache)
+.openspec/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

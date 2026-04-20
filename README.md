@@ -1,8 +1,5 @@
 # abp-pressure-sensor
 
-WIP
-currently it does not compile!
-
 [![Crate](https://img.shields.io/crates/v/abp-pressure-sensor?style=plastic)](https://crates.io/crates/abp-pressure-sensor)
 ![License](https://img.shields.io/crates/l/abp-pressure-sensor?style=plastic)
 ![GitHub branch checks state](https://img.shields.io/github/checks-status/crjeder/abp-pressure-sensor/release?style=plastic)
@@ -15,14 +12,43 @@ currently it does not compile!
 <!-- [![crev reviews](https://web.crev.dev/rust-reviews/badge/crev_count/abp-pressure-sensor_bb.png)](https://web.crev.dev/rust-reviews/crate/abp-pressure-sensor/)-->
 
 This is a platform agnostic driver to interface with Honeywells APB line of pressure sensors (https://sps.honeywell.com/gb/en/products/advanced-sensing-technologies/healthcare-sensing/board-mount-pressure-sensors/basic-abp-series)
-This `[no_std]` driver is built using [`embedded-hal`][2] traits.
+This `no_std` driver is built on [`embedded-hal`][2] **1.0** traits.
 
 ## Usage
-It is recommended to always use [cargo-crev](https://github.com/crev-dev/cargo-crev)
-to verify the trustworthiness of each of your dependencies, including this one.
 
-Use an embedded-hal implementation to get I2C.
+Add to `Cargo.toml`:
 
+```toml
+abp-pressure-sensor = "0.2"
+```
+
+Instantiate with your HAL's I2C and delay types, plus the full Honeywell part number string:
+
+```rust
+use abp_pressure_sensor::Abp;
+
+// e.g. using stm32f4xx-hal ≥ 0.21
+let mut sensor = Abp::new(i2c, delay, "ABPDNNN030PG2A3");
+
+// Read pressure in Pascals
+let pressure_pa = sensor.read()?;
+
+// Read pressure (Pa) and temperature (°C) together (sensors with thermometer only)
+let (pressure_pa, temp_c) = sensor.pressure_and_temperature()?;
+```
+
+## Migration from 0.1.x
+
+| Change | 0.1.x | 0.2.x |
+|--------|-------|-------|
+| `embedded-hal` version | 0.2.7 | **1.0.0** |
+| Error type | `ApbError<E>` | `AbpError<E>` (typo fixed) |
+| Stale-data error | `nb::Error::WouldBlock` | `AbpError::DataNotReady` |
+| `read()` return | `nb::Result<f32, …>` | `Result<f32, AbpError<…>>` |
+| `pressure_and_temperature()` return | `Result<f32, E>` | `Result<(f32, f32), AbpError<…>>` |
+
+Update your HAL board-support crate to a version that implements `embedded-hal 1.0`
+(e.g. `rppal ≥ 0.18`, `stm32f4xx-hal ≥ 0.21`, `rp2040-hal ≥ 0.10`).
 
 ## Example
 
