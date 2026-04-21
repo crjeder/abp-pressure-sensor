@@ -19,22 +19,57 @@ This `no_std` driver is built on [`embedded-hal`][2] **1.0** traits.
 Add to `Cargo.toml`:
 
 ```toml
-abp-pressure-sensor = "0.2"
+abp-pressure-sensor = "0.3"
 ```
 
-Instantiate with your HAL's I2C and delay types, plus the full Honeywell part number string:
+Parse the Honeywell part number to get an `AbpConfig`, then construct the driver:
 
 ```rust
-use abp_pressure_sensor::Abp;
+use abp_pressure_sensor::{Abp, AbpConfig, TemperatureResolution};
 
-// e.g. using stm32f4xx-hal ≥ 0.21
-let mut sensor = Abp::new(i2c, delay, "ABPDNNN030PG2A3");
+// Parse config from the full part-number string (returns Result — no panics)
+let config = AbpConfig::from_part_number("ABPDNNN030PG2A3").unwrap();
+let mut sensor = Abp::new(i2c, config);
 
-// Read pressure in Pascals
+// Fast 2-byte read — pressure only (Pa)
 let pressure_pa = sensor.read()?;
 
-// Read pressure (Pa) and temperature (°C) together (sensors with thermometer only)
-let (pressure_pa, temp_c) = sensor.pressure_and_temperature()?;
+// Convert to native unit for display:  "30.0 psi"
+let native = pressure_pa / sensor.config.unit.to_pa_factor();
+
+// 4-byte read — pressure + 11-bit temperature (sensors with thermometer only)
+let (pressure_pa, temp_opt) = sensor.read_with_temperature(TemperatureResolution::Full)?;
+if let Some(temp_c) = temp_opt {
+    // sensor.config.has_thermometer is true
+}
+
+// 3-byte read — pressure + 8-bit temperature (~0.8 °C, faster / lower power)
+let (pressure_pa, temp_opt) = sensor.read_with_temperature(TemperatureResolution::Approx)?;
+```
+
+## Migration from 0.2.x
+
+| Change | 0.2.x | 0.3.x |
+|--------|-------|-------|
+| Constructor | `Abp::new(i2c, delay, "PART-NR")` | `Abp::new(i2c, config)` — infallible |
+| Config/parsing | `Abp::new` panics on bad part number | `AbpConfig::from_part_number(s)?` returns `Result` |
+| Delay parameter | `Abp<I2C, D>` (two type params) | `Abp<I2C>` (one type param, no delay) |
+| Temperature read | `sensor.pressure_and_temperature()` → `(f32, f32)` | `sensor.read_with_temperature(TemperatureResolution::Full)?` → `(f32, Option<f32>)` |
+| Resolution choice | None — always 4 bytes | `TemperatureResolution::Approx` (3 bytes) or `Full` (4 bytes) |
+| Pressure unit | Internal `conversion_factor: f32` | `PressureUnit` enum with `to_pa_factor()` and `Display` |
+| `has_thermometer` | Hidden field | `sensor.config.has_thermometer` (public) |
+
+Migration example:
+
+```rust
+// 0.2.x
+let mut sensor = Abp::new(i2c, delay, "ABPDNNN030PG2A3");
+let (p, t) = sensor.pressure_and_temperature()?;
+
+// 0.3.x
+let config = AbpConfig::from_part_number("ABPDNNN030PG2A3")?;
+let mut sensor = Abp::new(i2c, config);
+let (p, t) = sensor.read_with_temperature(TemperatureResolution::Full)?;
 ```
 
 ## Migration from 0.1.x
