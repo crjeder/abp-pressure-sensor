@@ -42,3 +42,16 @@ Single-crate `no_std` embedded-hal driver for the Honeywell ABP series I2C press
 - `pressure_and_temperature()` returns pressure but ignores the decoded temperature
 - `read()` has unresolved type errors around `nb::Error` wrapping
 - `quick-error` and `substring` crates are dependencies but `substring` usage via `.substring()` is the main string-slicing mechanism in `new()`
+
+## Workflow
+
+- add Doc Comments for every function, explain what it does and its in- and output 
+- Use git worktrees for feature work to keep changes isolated from the current workspace. Before starting any non-trivial implementation, create a worktree on a new branch rather than working directly on the checked-out branch. Place worktrees in .worktrees in the project directory
+- For every non-trivial implementation check crates.io if there is already a crate implementing the functionality. Use the `crates-mcp` MCP server (tools: `crates_search`, `crates_get`, `crates_get_versions`, `crates_get_dependencies`) — it has direct API access and is more reliable than context7 for Rust crates.
+- use openspec to plan changes and new features
+- when archiving the change, update [CHANGELOG.md](CHANGELOG.md):
+- Put entries under a new version. Follow @[semantic versioning](https://semver.org/)
+- Follow @[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format — write for humans, not diffs
+- Use [TODO.md](TODO.md) to track pending work
+- Never push to the upstream repository unless specifically instructed
+- update this Claude.md with important learnings

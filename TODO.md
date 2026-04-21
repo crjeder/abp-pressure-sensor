@@ -1,0 +1,2 @@
+- [x] explore if temperature decoding is endian-ness agnostic
+- [ ] correct the Messbereich calculation
